@@ -1,0 +1,122 @@
+body{
+    margin:0;
+	font-size:13px;
+}
+
+#__rb_editor__{
+    position:relative;
+    
+    
+    background-color: white;
+}
+
+#__rb_layout__{
+    position:absolute;
+    overflow:auto;
+    height:100%;
+}
+
+#__rb_gutter__{
+    position:absolute;
+    overflow:hidden;
+    height:100%;
+    
+    background-color: #E8E8E8;
+}
+
+#__rb_marker__ {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    z-index: 1;
+}
+
+#__rb_content__{
+    cursor:text;
+    height: 100%;
+    width: 100%;
+    color: #222222;
+    position: absolute;
+    z-index: 2;
+}
+
+#__rb_cursor__{
+    width: 7px; 
+    visibility: visible; 
+    border-left: 2px solid #000000; 
+    position: absolute; 
+    z-index:4
+}
+
+#__rb_textinput__ {
+    position:absolute;
+    //position:fixed;
+    z-index:-1;
+    width:10px;
+    height:30px;
+    opacity:0;
+    background-color:#FFFFFF;
+    border:none;
+    resize:none;
+    outline:none;
+    overflow:hidden;
+}
+
+#__rb_ac__{
+    width : 150px;
+    height : auto;
+    overflow-x : hidden;
+    overflow-y : auto;
+    position: absolute;
+    z-index: 3;
+    display: none;
+    border: #666 2px solid;
+    color: #333;
+    background-color: #eee;
+}
+
+#__rb_ac__ ul {
+    padding-left: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    line-height: 20px;
+}
+
+#__rb_ac__ li {
+    list-style:none;
+}
+
+#__rb_editor__ .char_unit {
+    display: inline-block;
+    text-align: center;
+}
+
+#__rb_editor__ .line {
+    white-space: nowrap;
+}
+
+#__rb_editor__ .selection {
+    background: blue;
+    position: absolute;
+}
+
+#__rb_editor__ .bracket {
+    background: #555555;
+    position: absolute;
+}
+
+#__rb_editor__ .line_num {
+    text-align: right;
+    padding-right: 6px;
+    color : black;
+}
+
+.editor_keyword {color:#7F007F;}
+.editor_operator {  color:#70C0B1;}
+.editor_language {  color:#E78C45;}
+.editor_numeric {  color:#0000aa;}
+.editor_function {  color:#7AA6DA;}
+.editor_comment {  color:#969896;}
+.editor_string {  color:#B9CA4A;}
+.editor_bracket { color:#000000;}
+.editor_selection {background: rgb(149,160,255); position: absolute;}
