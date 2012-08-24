@@ -93,6 +93,16 @@ Layout.prototype.mouseup = function(e) {
     //_layout.cursorMoveTo(x, y, e.srcElement);
     _layout.cursorMoveTo(x, y);
     _layout.textinput.focus();
+    //关掉selection
+    _selection = this.session.selection;
+    if (1 == _selection.status) {
+        if (this.session.shiftOn) {
+            _selection.update(this.session.position);
+        }
+        _selection.end();
+    }
+    //寻找匹配括号
+    this.session.checkBracket();
     document.removeEventListener('mouseup', this.mouseup.bind(this), true);
     document.removeEventListener('mousemove', this.mousemove.bind(this), true);
     e.stopPropagation();
@@ -112,15 +122,10 @@ Layout.prototype.mousedown = function (e) {
         y = 0;
     }
     var _pos = this.session.getPositionByOffset(x, y);
-    if (_selection.hasHead) {
-        if (this.session.shiftOn) {
-            _selection.update(_pos);
+    if (!this.session.shiftOn) {
+        if (2 == _selection.status) {
+            _selection.clear();
         }
-        else {
-            _selection.clear(); 
-        }
-    }
-    else {
         _selection.start(_pos);
     }
     //TODO 不能干扰整个document的鼠标事件
@@ -132,7 +137,7 @@ Layout.prototype.mousedown = function (e) {
 
 Layout.prototype.mousemove = function (e) {
     //如果是按下状态
-    if (this.inFocus && this.session.selection.hasHead) {
+    if (this.inFocus && 1 == this.session.selection.status) {
         var x = e.pageX - this.content.clientRect.left;
         var y = e.pageY - this.content.clientRect.top;
         if (x < 0) {
@@ -183,7 +188,6 @@ Layout.prototype.cursorMoveTo = function (x, y) {
     this.session.setPosition(pos);
     this.activeLine = this.getActiveLine(pos.y);
     this.cursorAdjust(pos);
-    this.session.checkBracket();
     return pos;
 };
 

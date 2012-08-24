@@ -49,9 +49,14 @@ LayoutInput.prototype.keydown = function (e) {
         break;
     case 16 :
         //shift
-        _session.shiftOn = 1;
-        if (!_session.selection.hasHead) {
-            _session.selection.start(_session.position);
+        if (!_session.shiftOn) {
+            _session.shiftOn = 1;
+            if (0 == _session.selection.status) {
+                _session.selection.start(_session.position);
+            }
+            else if (2 == _session.selection.status) {
+                _session.selection.status = 1;
+            }
         }
         break;
     case 17 :
@@ -103,10 +108,14 @@ LayoutInput.prototype.keydown = function (e) {
 
 LayoutInput.prototype.keyup = function (e) {
     var _keyCode = e.keyCode;
+    var _session = this.session;
     switch (_keyCode) {
     case 16 :
         //shift
         this.session.shiftOn = 0;
+        if (1 == _session.selection.status) {
+            _session.selection.end();
+        }
         break;
     case 17 :
         //ctrl

@@ -1,5 +1,6 @@
 ﻿/**
  * @author derongzeng
+ * TODO 对selection做优化，以免括号匹配出问题。
 */
 var Session = function (elementId, opt) {
     this.layout = new Layout(document.getElementById(elementId), this);
@@ -164,7 +165,7 @@ Session.prototype.add = function (text) {
 
 Session.prototype.remove = function (dir) {
     //如果有选择的状态，就删除选区
-    if (this.selection.isExpanded()) {
+    if (2 == this.selection.status) {
         this.removeMulti(this.selection.head, this.selection.tail);
         this.selection.clear();
         return;
@@ -181,7 +182,6 @@ Session.prototype.remove = function (dir) {
                 var _y = _pos.y + 1;
                 this.layout.getActiveLine(_y);
                 _rest = this.rows[_y];
-                console.log(_rest);
                 _deletedChar = String.fromCharCode(13);
                 this.layout.deleteLine(1);
                 this.rows.splice(_y, 1);
@@ -268,7 +268,7 @@ Session.prototype.indent = function () {
         indent_str = '\t';
         _length = 1;
     }
-    if (this.selection.isExpanded()) {
+    if (2 == this.selection.status) {
         for (var i = this.selection.head.y; i <= this.selection.tail.y; i++) {
             this.layout.getActiveLine(i);
             this.indentLine(indent_str, i, 0);
@@ -283,8 +283,9 @@ Session.prototype.indent = function () {
             y : this.selection.tail.y,
             s : this.selection.tail.s + 4
         };
+        this.selection.clear();
         this.selection.start(_start);
-        this.selection.update(_end);
+        this.selection.end(_end);
     }
     else {
         this.indentLine(indent_str, _pos.y, _x);
@@ -302,8 +303,12 @@ Session.prototype.indentLine = function (indent_str, y, x) {
 };
 
 Session.prototype.outdent = function () {
+    //shiftOn肯定是开启的。先关闭选区
+    if (1 == this.selection.status) {
+        this.selection.end();
+    }
     var _pos = this.position;
-    if (this.selection.isExpanded()) {
+    if (2 == this.selection.status) {
         var _h_y = this.selection.head.y,
         _t_y = this.selection.tail.y,
         _h_outdent_x = _t_outdent_x = _outdent_x = 0;
@@ -338,12 +343,13 @@ Session.prototype.outdent = function () {
             this.layout.getActiveLine(i);
             this.outdentLine(i);
         }
+        this.selection.clear();
         this.selection.start(_start);
-        this.selection.update(_end);
+        this.selection.end(_end);
         _outdent_x = (_h_y == _pos.y) ? _h_outdent_x : _t_outdent_x;
     }
     else {
-        _outdent_x = this.outdentLine( _pos.y);
+        _outdent_x = this.outdentLine(_pos.y);
     }
     if (0 < _outdent_x) {
         _pos.x -= _outdent_x;
@@ -390,11 +396,11 @@ Session.prototype.cursorMoveLeft = function () {
     this.getPositionByCol(_pos.x, _pos.y);
     this.layout.cursorAdjust(_pos);
     if (this.shiftOn) {
-        if (this.selection.hasHead) {
+        if (1 == this.selection.status) {
             this.selection.update(_pos);
         }
     }
-    else if (this.selection.hasHead){
+    else if (2 == this.selection.status){
         this.selection.clear();
     }
 };
@@ -418,11 +424,11 @@ Session.prototype.cursorMoveRight = function () {
     this.getPositionByCol(_pos.x, _pos.y);
     this.layout.cursorAdjust(_pos);
     if (this.shiftOn) {
-        if (this.selection.hasHead) {
+        if (1 == this.selection.status) {
             this.selection.update(_pos);
         }
     }
-    else if (this.selection.hasHead){
+    else if (2 == this.selection.status){
         this.selection.clear();
     }
 };
@@ -442,11 +448,11 @@ Session.prototype.cursorMoveUp = function () {
     this.getPositionByCol(_pos.x, _pos.y);
     this.layout.cursorAdjust(_pos);
     if (this.shiftOn) {
-        if (this.selection.hasHead) {
+        if (1 == this.selection.status) {
             this.selection.update(_pos);
         }
     }
-    else if (this.selection.hasHead){
+    else if (2 == this.selection.status){
         this.selection.clear();
     }
 };
@@ -466,7 +472,7 @@ Session.prototype.cursorMoveDown = function () {
     this.getPositionByCol(_pos.x, _pos.y);
     this.layout.cursorAdjust(_pos);
     if (this.shiftOn) {
-        if (this.selection.hasHead) {
+        if (1 == this.selection.status) {
             this.selection.update(_pos);
         }
     }
@@ -559,8 +565,9 @@ Session.prototype.selectWord = function (x, y) {
         }
         else break;
     }
+    this.selection.clear();
     this.selection.start(_pos);
-    this.selection.update(_end);
+    this.selection.end(_end);
     this.setPosition(_end);
     this.layout.cursorAdjust(_end);
 };
@@ -568,16 +575,16 @@ Session.prototype.selectWord = function (x, y) {
 Session.prototype.selectAll = function () {
     var _y = this.rows.length - 1;
     var _end = this.getPositionByCol(this.rows[_y].length, _y);
+    this.selection.clear();
     this.selection.start({x : 0, y : 0, s : 0});
-    this.selection.update(_end);
+    this.selection.end(_end);
     this.layout.cursorAdjust(_end);
-    console.log(this.selection);
 };
 
 //查找括号
 Session.prototype.checkBracket = function () {
     //有selection时不做检测
-    if (this.selection.hasHead) {
+    if (1 == this.selection.status) {
         return false;
     }
     var _pos = this.position;
@@ -585,7 +592,6 @@ Session.prototype.checkBracket = function () {
     var bracket_Reg = /([\(\[\{])|([\)\]\}])/;
     var match;
     var bracket_position;
-    console.log(current_line.charAt(_pos.x - 1));
     if (_pos.x > 0 ) {
         match = current_line.charAt(_pos.x - 1).match(bracket_Reg);
         bracket_position = {y : _pos.y, x : _pos.x - 1};
