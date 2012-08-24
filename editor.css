@@ -101,7 +101,7 @@ body{
 }
 
 #__rb_editor__ .bracket {
-    background: #555555;
+    border: #1C8FE9 1px solid;
     position: absolute;
 }
 

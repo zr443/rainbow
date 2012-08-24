@@ -177,11 +177,13 @@ Layout.prototype.cursorAdjust = function (pos) {
     this.cursor.adjustTo(pos, this.charW, this.charH);
 };
 
+//TODO此处做括号匹配判断
 Layout.prototype.cursorMoveTo = function (x, y) {
     var pos = this.session.getPositionByOffset(x, y);
     this.session.setPosition(pos);
     this.activeLine = this.getActiveLine(pos.y);
     this.cursorAdjust(pos);
+    this.session.checkBracket();
     return pos;
 };
 
@@ -236,26 +238,6 @@ Layout.prototype.getScrollTop = function () {
 };
 
 Layout.prototype.highlightBracket = function (open, close) {
-    $('#marker').empty();
-    if (open) {
-        var _open = $('<div class="bracket"></div>');
-        _open.css({
-            'top'  : e_pos.height * open.row,
-            'left'  : e_pos.width * open.col,
-            'height' : e_pos.height,
-            'width': e_pos.width - 1
-        });
-        $('#marker').append(_open);
-    }
-    if (close) {
-        var _close = $('<div class="bracket"></div>');
-        _close.css({
-            'top'  : e_pos.height * parseInt(close.row),
-            'left'  : e_pos.width * parseInt(close.col) + 1,
-            'height' : e_pos.height,
-            'width': e_pos.width
-        });
-        $('#marker').append(_close);
-    }
-    
-}
+    this.marker.clear();
+    this.marker.bracketsBox(this.charW, this.charH, open, close);
+};

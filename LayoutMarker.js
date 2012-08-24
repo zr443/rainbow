@@ -69,3 +69,18 @@ LayoutMarker.prototype.createSelection = function (head, tail) {
         this.ele.appendChild(_div);
     }
 };
+
+LayoutMarker.prototype.bracketsBox = function (w, h, open, close) {
+    if (open) {
+        var _open = document.createElement('div');
+        _open.className = 'bracket';
+        _open.style.cssText = 'top:' + (h * open.y) + 'px;left:' + (w * open.x) + 'px;height:' + h + 'px;width:' + (w - 1) + 'px';
+        this.ele.appendChild(_open);
+    }
+    if (close) {
+        var _close = document.createElement('div');
+        _close.className = 'bracket';
+        _close.style.cssText = 'top:' + (h * parseInt(close.y)) + 'px;left:' + (w * parseInt(close.x)) + 'px;height:' + h + 'px;width:' + w + 'px';
+        this.ele.appendChild(_close);
+    }
+};

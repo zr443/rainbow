@@ -41,6 +41,12 @@ Session.prototype.getPositionByCol = function (x, y) {
     return this.position;
 };
 
+/**
+ * 根据坐标点判断位置
+ * @param x
+ * @param y
+ * @returns
+ */
 Session.prototype.getPositionByOffset = function (x, y) {
     var _len = this.rows.length,
     _layout = this.layout,
@@ -568,9 +574,41 @@ Session.prototype.selectAll = function () {
     console.log(this.selection);
 };
 
+//查找括号
+Session.prototype.checkBracket = function () {
+    //有selection时不做检测
+    if (this.selection.hasHead) {
+        return false;
+    }
+    var _pos = this.position;
+    var current_line = this.rows[_pos.y];
+    var bracket_Reg = /([\(\[\{])|([\)\]\}])/;
+    var match;
+    var bracket_position;
+    console.log(current_line.charAt(_pos.x - 1));
+    if (_pos.x > 0 ) {
+        match = current_line.charAt(_pos.x - 1).match(bracket_Reg);
+        bracket_position = {y : _pos.y, x : _pos.x - 1};
+    }
+    if (!match && _pos.x < current_line.length) {
+        match = current_line.charAt(_pos.x).match(bracket_Reg);
+        bracket_position = _pos;
+    }
+    //找到括号
+    if (match) {
+        if (match[1]) {
+            this.layout.highlightBracket(bracket_position, this.findClosingBracket(match[1], bracket_position));
+        }
+        else {
+            this.layout.highlightBracket(this.findOpenBracket(match[2], bracket_position), bracket_position);
+        }
+    }
+};
+
 Session.prototype.findClosingBracket = function (bracket, position) {
     var closingBracket;
     var depth = 1;
+    var _rows = this.rows;
     switch (bracket) {
         case '{' : 
             closingBracket = '}';
@@ -584,20 +622,20 @@ Session.prototype.findClosingBracket = function (bracket, position) {
         default : 
         break;
     }
-    for (var i = position.row; i < rows.length; i++) {
+    for (var i = position.y; i < _rows.length; i++) {
         var j = 0;
-        if (i == position.row) {
-            var j = position.col + 1;
+        if (i == position.y) {
+            var j = position.x + 1;
         }
-        for (; j < rows[i].length; j++) {
-            var _char = rows[i].charAt(j);
+        for (; j < _rows[i].length; j++) {
+            var _char = _rows[i].charAt(j);
             if (bracket == _char) {
                 depth++;
             }
             else if (closingBracket == _char) {
                 depth--;
                 if (!depth) {
-                    return {row : i, col : j};
+                    return {y : i, x : j};
                 }
             }
         }
@@ -607,6 +645,7 @@ Session.prototype.findClosingBracket = function (bracket, position) {
 Session.prototype.findOpenBracket= function (bracket, position) {
     var openBracket;
     var depth = 1;
+    var _rows = this.rows;
     switch (bracket) {
         case '}' : 
             openBracket = '{';
@@ -620,20 +659,20 @@ Session.prototype.findOpenBracket= function (bracket, position) {
         default : 
         break;
     }
-    for (var i = position.row; i >= 0; i--) {
-        var j = rows[i].length - 1;
-        if (i == position.row) {
-            var j = position.col - 1;
+    for (var i = position.y; i >= 0; i--) {
+        var j = _rows[i].length - 1;
+        if (i == position.y) {
+            var j = position.x - 1;
         }
         for (; j >= 0; j--) {
-            var _char = rows[i].charAt(j);
+            var _char = _rows[i].charAt(j);
             if (bracket == _char) {
                 depth++;
             }
             else if (openBracket == _char) {
                 depth--;
                 if (!depth) {
-                    return {row : i, col : j};
+                    return {y : i, x : j};
                 }
             }
         }
